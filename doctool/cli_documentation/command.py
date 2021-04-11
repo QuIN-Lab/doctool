@@ -1,8 +1,5 @@
-import sys
-import traceback
 import shutil
 import textwrap
-import importlib
 from io import StringIO
 from pathlib import Path
 
@@ -107,8 +104,10 @@ def document_cli(module, output_format, output_file, section_depth=None):
             'latex': 'usage.tex',
         }[output_format]
 
+    output_file = Path(output_file)
+
     # TODO: Maybe this should be configuratble
-    output_dir = Path(output_file).parent / 'examples'
+    output_dir = output_file.parent / 'examples'
     output_dir.mkdir(parents=True, exist_ok=True)
 
     ctx = click.Context(
@@ -152,7 +151,7 @@ def document_cli(module, output_format, output_file, section_depth=None):
                     example_path=command.get_example(
                         ctx=child_ctx,
                         output_dir=output_dir,
-                    ),
+                    ).relative_to(output_file.parent),
                 ))
 
 
