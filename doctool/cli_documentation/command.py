@@ -192,6 +192,8 @@ def document_cli(module, output_format, output_file, section_depth=None):
 
             if isinstance(command, DoctoolCommand):
                 print(command.name)
+
+                # TODO: Check that command actually has an image example
                 s.write(formatter.format_command_example(
                     example_cmd=command.get_example_command(ctx),
                     example_help=textwrap.dedent(command.example_help),

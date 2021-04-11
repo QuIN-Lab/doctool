@@ -8,6 +8,7 @@ from colorama import Fore as FgColour
 
 class DoctoolCommand(click.Command):
     def __init__(self, *args, example=None, example_help='', **kwargs):
+        # TODO: Change these args to include image or figure
         super().__init__(*args, **kwargs)
         self._example_args = example
         self.example_help = example_help
