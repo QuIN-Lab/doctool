@@ -8,6 +8,7 @@ setup(
     install_requires=[
         'click @ git+https://github.com/MarcelRobitaille/click',
         'colorama',
+        'pdoc3',
     ],
     entry_points='''
         [console_scripts]

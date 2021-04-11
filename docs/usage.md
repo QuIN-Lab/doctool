@@ -1,13 +1,27 @@
 
 # Usage
 ```
-Usage: python -m main [OPTIONS] COMMAND [ARGS]...
+Usage: python -m doctool.main [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
 
 Commands:
+  document-api  Generate API documentation using [pdoc3](https://pdoc3.github.io/pdoc/).
   document-cli  Generate usage documentation for a click command-line application for...
+```
+
+## `document-api`
+
+Generate API documentation using [pdoc3](https://pdoc3.github.io/pdoc/).
+
+
+```
+Usage: python -m doctool.main document-api [OPTIONS]
+
+Options:
+  --help  Show this message and exit.
+
 ```
 
 ## `document-cli`
@@ -34,7 +48,7 @@ A template is available with the `--print-tex-template` option.
 
 
 ```
-Usage: python -m main document-cli [OPTIONS] MODULE
+Usage: python -m doctool.main document-cli [OPTIONS] MODULE
 
 Options:
   --output-format [markdown|latex]
