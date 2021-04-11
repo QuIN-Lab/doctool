@@ -7,3 +7,9 @@ chances that that actually happens.
 ## Usage
 
 See [usage.md](docs/usage.md)
+
+
+## TODO
+
+- Make this work with LuaLaTeX.
+- Make a repository for lua version list and link to it from here.
