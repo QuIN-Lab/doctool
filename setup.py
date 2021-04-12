@@ -4,9 +4,7 @@ setup(
     name='doctool',
     version='0.0.3',
     packages=find_packages(),
-    package_data = {
-        'cli_documentation': ['*.tex'],
-    },
+    include_package_data=True,
     install_requires=[
         'click @ git+https://github.com/MarcelRobitaille/click',
         'colorama',
