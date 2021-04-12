@@ -14,7 +14,10 @@ class DoctoolCommand(click.Command):
         self.example_help = example_help
 
     def get_example_command(self, ctx):
-        args = [f'"{x}"' if ' ' in x else x for x in self._example_args]
+        args = [
+            f'"{x}"' if ' ' in x else x
+            for x in map(str, self._example_args)
+        ]
         return ' '.join([ctx.info_name, self.name, *args])
 
     def get_example(self, ctx, output_dir):
