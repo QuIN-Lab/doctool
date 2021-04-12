@@ -73,7 +73,7 @@ class LatexFormatter(Formatter):
     def section(self, n):
         # TODO: Support paragraph and such
 
-        prefix = 'sub' * (n * self.section_depth)
+        prefix = 'sub' * (n + self.section_depth)
         return rf'\{prefix}section'
 
     def format_usage(self, usage):
