@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import click
@@ -21,6 +22,7 @@ def document_api(module, output_file):
     pdoc.tpl_lookup.directories \
         .insert(0, str(Path(__file__).parent / 'templates'))
 
+    sys.path.insert(0, '')
     result = text(module)
 
     with open(output_file, 'w') as f:
