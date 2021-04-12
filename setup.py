@@ -2,9 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='doctool',
-    version='0.0.2',
+    version='0.0.3',
     packages=find_packages(),
-    include_package_data=True,
+    package_data = {
+        'cli_documentation': ['*.tex'],
+    },
     install_requires=[
         'click @ git+https://github.com/MarcelRobitaille/click',
         'colorama',
