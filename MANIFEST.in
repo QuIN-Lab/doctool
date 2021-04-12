@@ -1,1 +1,1 @@
-include ./doctool/cli_documentation/example.tex
+include doctool/cli_documentation/*
