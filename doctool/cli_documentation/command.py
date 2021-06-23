@@ -44,8 +44,8 @@ def print_tex_template(ctx, _param, value):
 @click.option(
     '--output-file',
     default=None,
-    help=
-    'File to write usage to (`usage.md` for markdown, `usage.tex` for latex)'
+    help='File to write usage to '
+    '(`usage.md` for markdown, `usage.tex` for latex)'
 )
 @click.option(
     '--section-depth',
@@ -59,8 +59,7 @@ def print_tex_template(ctx, _param, value):
     callback=print_tex_template,
     expose_value=False,
     is_eager=True,
-    help=
-    'Print a minimal LaTeX template for use with `--output-format=latex` ' +
+    help='Print a minimal LaTeX template for use with `--output-format=latex` '
     'and exit'
 )
 def document_cli(module, output_format, output_file, section_depth=None):
