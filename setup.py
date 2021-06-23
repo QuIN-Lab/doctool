@@ -9,6 +9,9 @@ setup(
         'click @ git+https://github.com/MarcelRobitaille/click',
         'colorama',
         'pdoc3',
+        'pathos',
+        'timer',
+        'tqdm',
     ],
     entry_points='''
         [console_scripts]

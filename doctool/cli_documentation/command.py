@@ -2,13 +2,18 @@ import shutil
 import textwrap
 from io import StringIO
 from pathlib import Path
+from contextlib import redirect_stdout, redirect_stderr
 
 import click
+from tqdm import tqdm
+from timer import timer
 from colorama import Fore as FgColour
+from pathos.multiprocessing import ProcessingPool as Pool
 
+from doctool.lib.module_type import ModuleType
 from .formatters import MarkdownFormatter, LatexFormatter
 from .external_command import DoctoolCommand
-from doctool.lib.module_type import ModuleType
+
 
 
 def get_usage(command, ctx):
@@ -31,6 +36,12 @@ def print_tex_template(ctx, _param, value):
     with open(Path(__file__).parent / 'example.tex', 'r') as f:
         print(f.read())
     ctx.exit()
+
+
+def tap(f, iterable):
+    for item in iterable:
+        f(item)
+        yield item
 
 
 @click.command()
@@ -116,17 +127,22 @@ def document_cli(module, output_format, output_file, section_depth=None):
         max_content_width=110,
         col_max=50,
     )
-    s = StringIO()
-
     formatter = {
         'markdown': MarkdownFormatter(),
         'latex': LatexFormatter(section_depth=section_depth),
     }[output_format]
 
-    with ctx.scope():
-        s.write(formatter.format_usage(group.get_help(ctx)))
+    def generate_for_command(command_name):
+        """
+        Generate mardkwon docs for a single command
+        :returns: StringIO
+        """
 
-        for command_name in group.list_commands(ctx):
+        with timer() as t, open('/dev/null', 'w') as devnull, \
+                redirect_stdout(devnull), redirect_stderr(devnull):
+
+            s = StringIO()
+            s.write(formatter.format_usage(group.get_help(ctx)))
 
             command = group.get_command(ctx, command_name)
             child_ctx = click.Context(
@@ -141,8 +157,6 @@ def document_cli(module, output_format, output_file, section_depth=None):
             ))
 
             if isinstance(command, DoctoolCommand):
-                print(command.name)
-
                 # TODO: Check that command actually has an image example
                 s.write(formatter.format_command_example(
                     example_cmd=command.get_example_command(ctx),
@@ -153,7 +167,20 @@ def document_cli(module, output_format, output_file, section_depth=None):
                     ).relative_to(output_file.parent),
                 ))
 
+            return command_name, t.elapse, s
+
+    def print_progress(args):
+        command_name, time, _ = args
+        tqdm.write(f'Finished {command_name} in {time:.2f}s')
+
+    with ctx.scope(), Pool() as p:
+        commands = group.list_commands(ctx)
+        results = [s for *_, s in tqdm(
+            tap(print_progress, p.imap(generate_for_command, commands)),
+            total=len(commands),
+        )]
 
     with open(output_file, 'w') as f:
-        s.seek(0)
-        shutil.copyfileobj(s, f)
+        for s in results:
+            s.seek(0)
+            shutil.copyfileobj(s, f)
