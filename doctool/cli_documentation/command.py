@@ -1,4 +1,5 @@
 import shutil
+import traceback
 import textwrap
 from io import StringIO
 from pathlib import Path
@@ -146,35 +147,41 @@ def document_cli(module, output_format, output_file, output_dir,
         :returns: StringIO
         """
 
-        with timer() as t, open('/dev/null', 'w') as devnull, \
-                redirect_stdout(devnull), redirect_stderr(devnull):
+        try:
+            with timer() as t, open('/dev/null', 'w') as devnull, \
+                    redirect_stdout(devnull), redirect_stderr(devnull):
 
-            s = StringIO()
+                s = StringIO()
 
-            command = group.get_command(ctx, command_name)
-            child_ctx = click.Context(
-                command=command,
-                parent=ctx,
-                info_name=command.name,
-            )
-            s.write(formatter.format_command(
-                command_name=command_name,
-                command_description=textwrap.dedent(command.__doc__ or ''),
-                command_help=get_usage(command, child_ctx),
-            ))
-
-            if isinstance(command, DoctoolCommand):
-                # TODO: Check that command actually has an image example
-                s.write(formatter.format_command_example(
-                    example_cmd=command.get_example_command(ctx),
-                    example_help=textwrap.dedent(command.example_help),
-                    example_path=command.get_example(
-                        ctx=child_ctx,
-                        output_dir=output_dir,
-                    ).relative_to(output_file.parent),
+                command = group.get_command(ctx, command_name)
+                child_ctx = click.Context(
+                    command=command,
+                    parent=ctx,
+                    info_name=command.name,
+                )
+                s.write(formatter.format_command(
+                    command_name=command_name,
+                    command_description=textwrap.dedent(command.__doc__ or ''),
+                    command_help=get_usage(command, child_ctx),
                 ))
 
-            return command_name, t.elapse, s
+                if isinstance(command, DoctoolCommand):
+                    # TODO: Check that command actually has an image example
+                    s.write(formatter.format_command_example(
+                        example_cmd=command.get_example_command(ctx),
+                        example_help=textwrap.dedent(command.example_help),
+                        example_path=command.get_example(
+                            ctx=child_ctx,
+                            output_dir=output_dir,
+                        ).relative_to(output_file.parent),
+                    ))
+
+                return command_name, t.elapse, s
+        except:
+            print('[DOCTOOL ERROR]: Error when processing command'
+                  f'`{command_name}`')
+            traceback.print_exc()
+            return command_name, 0, StringIO()
 
     def print_progress(args):
         command_name, time, _ = args
