@@ -3,7 +3,6 @@ import traceback
 import importlib
 
 import click
-from colorama import Fore as FgColour
 
 
 class ModuleType(click.ParamType):
@@ -39,7 +38,7 @@ class ModuleType(click.ParamType):
 
             traceback.print_exc()
             print(' '.join([
-                f'{FgColour.RED}ERROR:{FgColour.RESET}',
+                '[red][DOCTOOL ERROR]:[/red]',
                 'Received ModuleNotFoundError while importing',
                 f"'{parts[0]}':",
                 e.msg,

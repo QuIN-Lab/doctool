@@ -7,7 +7,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'click @ git+https://github.com/MarcelRobitaille/click',
-        'colorama',
+        'rich',
         'pdoc3',
         'pathos',
         'timer',

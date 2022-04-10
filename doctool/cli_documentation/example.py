@@ -2,7 +2,7 @@ import sys
 import shutil
 from pathlib import Path
 
-from colorama import Fore as FgColour
+from doctool.console import console
 
 
 class Example:
@@ -34,8 +34,8 @@ class Example:
         try:
             external_filename = Path(external_filename)
         except TypeError:
-            print(' '.join([
-                f'{FgColour.RED}ERROR:{FgColour.RESET}',
+            console.print(' '.join([
+                '[red][DOCTOOL ERROR]:[/red]',
                 f'The value returned from command {command.name} is not a path.',
                 'Expected str, bytes or os.PathLike,',
                 f'recived {type(external_filename)}.',

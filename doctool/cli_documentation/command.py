@@ -8,10 +8,10 @@ from contextlib import redirect_stdout, redirect_stderr
 import click
 from tqdm import tqdm
 from timer import timer
-from colorama import Fore as FgColour
 from pathos.multiprocessing import ProcessingPool as Pool
 
 from doctool.lib.module_type import ModuleType
+from doctool.console import console
 from .formatters import MarkdownFormatter, LatexFormatter
 
 
@@ -106,8 +106,8 @@ def document_cli(module, output_format, output_file, output_dir,
 
     # TODO: Actually, this could prepend extra `#`
     if output_format == 'markdown' and section_depth is not None:
-        print(' '.join([
-            f'{FgColour.YELLOW}WARNING:{FgColour.RESET}',
+        console.print(' '.join([
+            '[yellow][DOCTOOL WARNING]:[/yellow]',
             '`--section-depth` does nothing with markdown output',
         ]))
 
@@ -183,9 +183,9 @@ def document_cli(module, output_format, output_file, output_dir,
 
                 return command_name, t.elapse, s
         except:
-            print('[DOCTOOL ERROR]: Error when processing command'
-                  f'`{command_name}`')
-            traceback.print_exc()
+            console.print('[red][DOCTOOL ERROR]:[/red] '
+                          f'Error when processing command `{command_name}`')
+            console.print_exception()
             return command_name, 0, StringIO()
 
     def print_progress(args):
