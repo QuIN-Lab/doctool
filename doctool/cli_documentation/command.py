@@ -73,7 +73,14 @@ def tap(f, iterable):
     help='Print a minimal LaTeX template for use with `--output-format=latex` '
     'and exit'
 )
-def document_cli(module, output_format, output_file, section_depth=None):
+@click.option(
+    '--output-dir',
+    default=None,
+    type=click.Path(),
+    help='Where to save images output by examples that generate figures.'
+)
+def document_cli(module, output_format, output_file, output_dir,
+        section_depth=None):
     r"""
     Generate usage documentation for a click command-line application
     for `MODULE`, where module is `path.to.python.module:group`.
@@ -116,8 +123,9 @@ def document_cli(module, output_format, output_file, section_depth=None):
 
     output_file = Path(output_file)
 
-    # TODO: Maybe this should be configuratble
-    output_dir = output_file.parent / 'examples'
+    output_dir = output_file.parent / 'examples' if output_dir is None \
+            else output_dir
+    output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     ctx = click.Context(
