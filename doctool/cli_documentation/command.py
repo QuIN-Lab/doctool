@@ -150,7 +150,6 @@ def document_cli(module, output_format, output_file, output_dir,
                 redirect_stdout(devnull), redirect_stderr(devnull):
 
             s = StringIO()
-            s.write(formatter.format_usage(group.get_help(ctx)))
 
             command = group.get_command(ctx, command_name)
             child_ctx = click.Context(
@@ -181,14 +180,17 @@ def document_cli(module, output_format, output_file, output_dir,
         command_name, time, _ = args
         tqdm.write(f'Finished {command_name} in {time:.2f}s')
 
-    with ctx.scope(), Pool() as p:
+    with ctx.scope(), Pool() as p, open(output_file, 'w') as f:
+
+        # Print main usage
+        f.write(formatter.format_usage(group.get_help(ctx)))
+
         commands = group.list_commands(ctx)
         results = [s for *_, s in tqdm(
             tap(print_progress, p.imap(generate_for_command, commands)),
             total=len(commands),
         )]
 
-    with open(output_file, 'w') as f:
         for s in results:
             s.seek(0)
             shutil.copyfileobj(s, f)
