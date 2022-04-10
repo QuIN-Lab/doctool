@@ -13,8 +13,6 @@ from pathos.multiprocessing import ProcessingPool as Pool
 
 from doctool.lib.module_type import ModuleType
 from .formatters import MarkdownFormatter, LatexFormatter
-from .external_command import DoctoolCommand
-
 
 
 def get_usage(command, ctx):
@@ -165,15 +163,22 @@ def document_cli(module, output_format, output_file, output_dir,
                     command_help=get_usage(command, child_ctx),
                 ))
 
-                if isinstance(command, DoctoolCommand):
-                    # TODO: Check that command actually has an image example
+                for i, example in enumerate(reversed(getattr(
+                    command.callback,
+                    '__doctool_examples__',
+                    [],
+                ))):
                     s.write(formatter.format_command_example(
-                        example_cmd=command.get_example_command(ctx),
-                        example_help=textwrap.dedent(command.example_help),
-                        example_path=command.get_example(
+                        example_number=i + 1,
+                        name=example.name,
+                        cmd=example.format_commandline(ctx=ctx, command=command),
+                        help=textwrap.dedent(example.help),
+                        image_path=example.run(
                             ctx=child_ctx,
                             output_dir=output_dir,
-                        ).relative_to(output_file.parent),
+                            command=command,
+                        ).relative_to(output_file.parent)
+                        if example.creates_image else None,
                     ))
 
                 return command_name, t.elapse, s

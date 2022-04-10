@@ -51,17 +51,21 @@ class MarkdownFormatter(Formatter):
             command_help=self.tex_to_gl_md(command_help),
         )
 
-    def format_command_example(self, example_cmd, example_path, example_help):
-        return textwrap.dedent(r"""
-            ### Example:
-            `{example_cmd}`
+    def format_command_example(self, example_number, name, cmd, help, image_path):
+        image = '' if image_path is None else f'![]({image_path})'
 
-            ![]({example_path})
-            {example_help}
+        return textwrap.dedent(r"""
+            ### Example {example_number}: {name}
+            {help}
+
+            `{cmd}`
+            {image}
         """).format(
-            example_cmd=example_cmd,
-            example_path=example_path,
-            example_help=self.tex_to_gl_md(example_help),
+            name=name,
+            cmd=cmd,
+            image=image,
+            help=self.tex_to_gl_md(help),
+            example_number=example_number,
         )
 
 
@@ -117,20 +121,23 @@ class LatexFormatter(Formatter):
             command_help=command_help,
         )
 
-    def format_command_example(self, example_cmd, example_path, example_help):
+    def format_command_example(self, name, cmd, path, image_path):
+        image = '' if image_path is None else r"""
+            \begin{{figure}}[H]
+            \includegraphics[width=\linewidth]{{{image_path}}}
+            \caption{{{example_help}}}
+            \end{{figure}}
+        """.format(image_path=Path(image_path).name)
+
         return textwrap.dedent(r"""
             {section}{{Example:}}
             \begin{{minted}}[breaklines]{{text}}
             {example_cmd}
             \end{{minted}}
-
-            \begin{{figure}}[H]
-            \includegraphics[width=\linewidth]{{{example_path}}}
-            \caption{{{example_help}}}
-            \end{{figure}}
+            {image}
         """).format(
             section=self.section(2),
             example_cmd=example_cmd,
             example_help=example_help,
-            example_path=Path(example_path).name,
+            image=image,
         )

@@ -1,5 +1,5 @@
 from .command import document_cli
-from .external_command import DoctoolCommand
+from .example import example
 
 
-__all__ = ('document_cli', 'DoctoolCommand')
+__all__ = ('document_cli', 'example')
