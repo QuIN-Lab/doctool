@@ -118,7 +118,7 @@ def document_cli(module, output_format, output_file, output_dir,
 
     if output_file is None:
         output_file = {
-            'markdown': 'usage.md',
+            'markdown': 'USAGE.md',
             'latex': 'usage.tex',
         }[output_format]
 
