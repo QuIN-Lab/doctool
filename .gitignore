@@ -2,3 +2,5 @@ __pycache__
 venv
 doctool.egg-info
 *.log
+build
+dist
