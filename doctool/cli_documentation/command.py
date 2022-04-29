@@ -39,6 +39,9 @@ def print_tex_template(ctx, _param, value):
 
 
 def tap(f, iterable):
+    """
+    Apply a function to each item of an iterable and yield the item
+    """
     for item in iterable:
         f(item)
         yield item
