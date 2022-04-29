@@ -32,7 +32,8 @@ def print_tex_template(ctx, _param, value):
     if not value or ctx.resilient_parsing:
         return
 
-    with open(Path(__file__).parent / 'example.tex', 'r') as f:
+    with open(Path(__file__).parent / 'example.tex', 'r',
+              encoding='utf-8') as f:
         print(f.read())
     ctx.exit()
 
@@ -146,7 +147,8 @@ def document_cli(module, output_format, output_file, output_dir,
         """
 
         try:
-            with timer() as t, open('/dev/null', 'w') as devnull, \
+            with timer() as t, \
+                    open('/dev/null', 'w', encoding='utf-8') as devnull, \
                     redirect_stdout(devnull), redirect_stderr(devnull):
 
                 s = StringIO()
@@ -192,7 +194,7 @@ def document_cli(module, output_format, output_file, output_dir,
         command_name, time, _ = args
         tqdm.write(f'Finished {command_name} in {time:.2f}s')
 
-    with ctx.scope(), Pool() as p, open(output_file, 'w') as f:
+    with ctx.scope(), Pool() as p, open(output_file, 'w', encoding='utf-8') as f:
 
         # Print main usage
         f.write(formatter.format_usage(group.get_help(ctx)))
