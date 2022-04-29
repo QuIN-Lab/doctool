@@ -1,8 +1,8 @@
 import shutil
-import traceback
 import textwrap
 from io import StringIO
 from pathlib import Path
+from functools import partial
 from contextlib import redirect_stdout, redirect_stderr
 
 import click
@@ -47,6 +47,76 @@ def tap(f, iterable):
         yield item
 
 
+def generate_for_command(command_name, ctx, group, formatter, output_dir,
+                         output_file):
+    """
+    Generate mardkwon docs for a single command
+    :returns: StringIO
+    """
+    print(command_name)
+
+    try:
+        with timer() as t, \
+                open('/dev/null', 'w', encoding='utf-8') as devnull, \
+                redirect_stdout(devnull), redirect_stderr(devnull):
+
+            s = StringIO()
+
+            command = group.get_command(ctx, command_name)
+            child_ctx = click.Context(
+                command=command,
+                parent=ctx,
+                info_name=command.name,
+            )
+            s.write(formatter.format_command(
+                command_name=command_name,
+                command_description=textwrap.dedent(command.__doc__ or ''),
+                command_help=get_usage(command, child_ctx),
+            ))
+
+            for i, example in enumerate(reversed(getattr(
+                command.callback,
+                '__doctool_examples__',
+                [],
+            ))):
+                s.write(formatter.format_command_example(
+                    example_number=i + 1,
+                    name=example.name,
+                    cmd=example.format_commandline(ctx=ctx, command=command),
+                    help=textwrap.dedent(example.help),
+                    image_path=example.run(
+                        ctx=child_ctx,
+                        output_dir=output_dir,
+                        command=command,
+                    ).relative_to(output_file.parent)
+                    if example.creates_image else None,
+                ))
+
+            return command_name, t.elapse, s
+    except:  # pylint: disable=bare-except
+        console.print('[red][DOCTOOL ERROR]:[/red] '
+                      f'Error when processing command `{command_name}`')
+        console.print_exception()
+        return command_name, 0, StringIO()
+
+
+def iter_commands(multiprocessing, commands, **kwargs):
+    """
+    Iterate through the commands and call `generate_for_command` on each one,
+    passing kwargs.
+    Use multiprocessing if allowed, otherwise use a simple serial loop.
+    """
+    if multiprocessing:
+        with Pool(1) as p:
+            yield from p.imap(
+                partial(generate_for_command, **kwargs),
+                commands,
+            )
+    else:
+        for command in commands:
+            yield generate_for_command(command, **kwargs)
+
+
 @click.command()
 @click.argument('module', type=ModuleType())
 @click.option(
@@ -82,8 +152,23 @@ def tap(f, iterable):
     type=click.Path(),
     help='Where to save images output by examples that generate figures.'
 )
-def document_cli(module, output_format, output_file, output_dir,
-        section_depth=None):
+@click.option(
+    '--multiprocessing/--no-multiprocessing',
+    default=True,
+    is_flag=True,
+    type=bool,
+    help='Whether to process the commands in parallel. '
+    'This is faster, but can make it difficult to track down issues.'
+)
+@click.option(
+    '--progress/--no-progress',
+    'should_print_progress',
+    default=True,
+    is_flag=True,
+    help='Whether to print a progress bar. Can get in the way of debugging.',
+)
+def document_cli(module, output_format, output_file, output_dir, multiprocessing,
+        should_print_progress, section_depth=None):
     r"""
     Generate usage documentation for a click command-line application
     for `MODULE`, where module is `path.to.python.module:group`.
@@ -143,70 +228,30 @@ def document_cli(module, output_format, output_file, output_dir,
         'latex': LatexFormatter(section_depth=section_depth),
     }[output_format]
 
-    def generate_for_command(command_name):
-        """
-        Generate mardkwon docs for a single command
-        :returns: StringIO
-        """
-
-        try:
-            with timer() as t, \
-                    open('/dev/null', 'w', encoding='utf-8') as devnull, \
-                    redirect_stdout(devnull), redirect_stderr(devnull):
-
-                s = StringIO()
-
-                command = group.get_command(ctx, command_name)
-                child_ctx = click.Context(
-                    command=command,
-                    parent=ctx,
-                    info_name=command.name,
-                )
-                s.write(formatter.format_command(
-                    command_name=command_name,
-                    command_description=textwrap.dedent(command.__doc__ or ''),
-                    command_help=get_usage(command, child_ctx),
-                ))
-
-                for i, example in enumerate(reversed(getattr(
-                    command.callback,
-                    '__doctool_examples__',
-                    [],
-                ))):
-                    s.write(formatter.format_command_example(
-                        example_number=i + 1,
-                        name=example.name,
-                        cmd=example.format_commandline(ctx=ctx, command=command),
-                        help=textwrap.dedent(example.help),
-                        image_path=example.run(
-                            ctx=child_ctx,
-                            output_dir=output_dir,
-                            command=command,
-                        ).relative_to(output_file.parent)
-                        if example.creates_image else None,
-                    ))
-
-                return command_name, t.elapse, s
-        except:
-            console.print('[red][DOCTOOL ERROR]:[/red] '
-                          f'Error when processing command `{command_name}`')
-            console.print_exception()
-            return command_name, 0, StringIO()
-
     def print_progress(args):
         command_name, time, _ = args
         tqdm.write(f'Finished {command_name} in {time:.2f}s')
 
-    with ctx.scope(), Pool() as p, open(output_file, 'w', encoding='utf-8') as f:
+    with ctx.scope(), open(output_file, 'w', encoding='utf-8') as f:
 
         # Print main usage
         f.write(formatter.format_usage(group.get_help(ctx)))
 
         commands = group.list_commands(ctx)
-        results = [s for *_, s in tqdm(
-            tap(print_progress, p.imap(generate_for_command, commands)),
-            total=len(commands),
-        )]
+
+        iterator = iter_commands(
+            commands=commands,
+            multiprocessing=multiprocessing,
+            ctx=ctx,
+            group=group,
+            formatter=formatter,
+            output_dir=output_dir,
+            output_file=output_file,
+        )
+        iterator = tqdm(tap(print_progress, iterator)) \
+            if should_print_progress else iterator
+
+        results = [s for *_, s in iterator]
 
         for s in results:
             s.seek(0)
