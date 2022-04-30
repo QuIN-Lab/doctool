@@ -106,7 +106,7 @@ def iter_commands(multiprocessing, commands, **kwargs):
     Use multiprocessing if allowed, otherwise use a simple serial loop.
     """
     if multiprocessing:
-        with Pool(1) as p:
+        with Pool() as p:
             yield from p.imap(
                 partial(generate_for_command, **kwargs),
                 commands,
