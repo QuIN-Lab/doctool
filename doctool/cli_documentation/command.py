@@ -53,7 +53,6 @@ def generate_for_command(command_name, ctx, group, formatter, output_dir,
     Generate mardkwon docs for a single command
     :returns: StringIO
     """
-    print(command_name)
 
     try:
         with timer() as t, \
@@ -248,7 +247,7 @@ def document_cli(module, output_format, output_file, output_dir, multiprocessing
             output_dir=output_dir,
             output_file=output_file,
         )
-        iterator = tqdm(tap(print_progress, iterator)) \
+        iterator = tqdm(tap(print_progress, iterator), total=len(commands)) \
             if should_print_progress else iterator
 
         results = [s for *_, s in iterator]
