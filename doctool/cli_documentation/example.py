@@ -54,6 +54,7 @@ class Example:
 
 
 def example(help, args, name='', creates_image=False):
+    args = list(map(str, args))
     def wrapper(func):
         if not hasattr(func, '__doctool_examples__'):
             func.__doctool_examples__ = []
