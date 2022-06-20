@@ -50,7 +50,7 @@ def tap(f, iterable):
 def generate_for_command(command_name, ctx, group, formatter, output_dir,
                          output_file):
     """
-    Generate mardkwon docs for a single command
+    Generate markdown docs for a single command
     :returns: StringIO
     """
 
