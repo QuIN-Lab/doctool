@@ -35,7 +35,7 @@ class Example:
         Run the example and generate the output image
         """
         with ctx.scope():
-            command.parse_args(ctx, map(str, self.args))
+            command.parse_args(ctx, self.args)
             external_filename = ctx.invoke(command, **ctx.params)
 
         try:
