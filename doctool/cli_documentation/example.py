@@ -1,3 +1,4 @@
+import re
 import sys
 import shutil
 from pathlib import Path
@@ -17,9 +18,15 @@ class Example:
         Get the full command including `python main.py` that could be
         copy/pasted into a terminal
         """
+        args = map(str, self.args)
+
+        # Replace /home/marcel and similar with `~`
+        home = str(Path.home()).replace('/', r'\/')
+        args = [re.sub(rf'^{home}', '~', a) for a in args]
+
         args = [
             f'"{x}"' if ' ' in x else x
-            for x in map(str, self.args)
+            for x in args
         ]
         return ' '.join([ctx.info_name, command.name, *args])
 
