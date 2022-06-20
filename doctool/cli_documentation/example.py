@@ -1,9 +1,6 @@
 import re
-import sys
 import shutil
 from pathlib import Path
-
-from doctool.console import console
 
 
 class Example:
@@ -40,16 +37,14 @@ class Example:
 
         try:
             external_filename = Path(external_filename)
-        except TypeError:
-            console.print(' '.join([
-                '[red][DOCTOOL ERROR]:[/red]',
-                f'The value returned from command {command.name} is not a path.',
+        except TypeError as e:
+            raise SystemExit(' '.join([
+                f'The value returned from command `{command.name}` is not a path.',
                 'Expected str, bytes or os.PathLike,',
-                f'recived {type(external_filename)}.',
+                f'received `{type(external_filename)}`.',
                 'Commands must return a path to an image',
                 'when using an image example.',
-            ]))
-            sys.exit(1)
+            ])) from e
 
 
         internal_filename = output_dir / \
