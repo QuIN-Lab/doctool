@@ -220,7 +220,6 @@ def document_cli(module, output_format, output_file, output_dir, multiprocessing
         info_name=f'python -m {module.__name__}',
         terminal_width=110,
         max_content_width=110,
-        col_max=50,
     )
     formatter = {
         'markdown': MarkdownFormatter(),
